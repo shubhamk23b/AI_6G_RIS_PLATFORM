@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Powered 6G RIS Platform | JCAS Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#020b14;--bg2:#050f1a;--bg3:#071525;
+  --panel:#0a1c2e;--panel2:#0d2035;
+  --border:#1a3a5c;--border2:#234d78;
+  --cyan:#00d4ff;--teal:#00ffcc;
+  --amber:#ffb300;--red:#ff3c5f;--green:#00ff88;
+  --purple:#b47aff;--blue:#3a8fff;
+  --text:#c8e6f8;--text2:#7aadcf;--text3:#3a6080;
+  --font:'Exo 2',sans-serif;--mono:'Share Tech Mono',monospace;
+}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--font)}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.012) 2px,rgba(0,212,255,.012) 4px);
+  pointer-events:none;z-index:9999}
+@keyframes scan{0%{top:-2px}100%{top:100vh}}
+.scan{position:fixed;left:0;width:100%;height:2px;background:linear-gradient(transparent,rgba(0,212,255,.12),transparent);animation:scan 4s linear infinite;pointer-events:none;z-index:9998}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;
+  background:rgba(10,28,46,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;
+  backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:38px;height:38px}
+.brand-name{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;color:var(--cyan);line-height:1.2}
+.brand-sub{font-size:8px;color:var(--text3);letter-spacing:3px;font-family:var(--mono)}
+.nav-tabs{display:flex;gap:2px}
+.ntab{padding:5px 16px;font-size:9px;font-family:var(--mono);letter-spacing:1.5px;
+  border:1px solid transparent;border-radius:2px;cursor:pointer;background:none;
+  color:var(--text2);transition:.2s;text-transform:uppercase}
+.ntab:hover{color:var(--cyan);border-color:var(--border)}
+.ntab.active{background:rgba(0,212,255,.08);color:var(--cyan);border-color:rgba(0,212,255,.4);
+  box-shadow:0 0 14px rgba(0,212,255,.12)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.spill{display:flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--border);
+  border-radius:2px;font-size:9px;font-family:var(--mono);color:var(--text2)}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:195px 1fr 235px;height:calc(100vh - 52px);overflow:hidden;gap:1px;background:var(--border)}
+.sidebar{background:var(--bg2);overflow-y:auto;padding:12px 8px;display:flex;flex-direction:column;gap:8px}
+.maincol{background:var(--bg);overflow-y:auto;padding:12px}
+.rightcol{background:var(--bg2);overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:8px}
+
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:2px;padding:11px}
+.ptitle{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.pbadge{font-size:7px;font-family:var(--mono);padding:2px 6px;
+  background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);color:var(--cyan);border-radius:1px}
+
+/* METRICS ROW */
+.mrow{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:10px}
+.mcard{background:var(--panel);border:1px solid var(--border);border-radius:2px;padding:9px 11px}
+.mlabel{font-size:7px;font-family:var(--mono);color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.mval{font-size:20px;font-family:'Rajdhani',sans-serif;font-weight:700;line-height:1}
+.munit{font-size:9px;color:var(--text2);margin-left:2px}
+.mtrend{font-size:7px;font-family:var(--mono);margin-top:3px}
+.tup{color:var(--green)}.tdn{color:var(--red)}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.full{grid-column:1/-1}
+
+/* CHART */
+.cw{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:2px;overflow:hidden}
+canvas{display:block;width:100%!important}
+
+/* SLIDERS */
+.srow{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:8px;font-family:var(--mono);color:var(--text2)}
+.slabel{width:58px;font-size:7px;letter-spacing:.5px;text-transform:uppercase;color:var(--text3)}
+.sval{width:34px;text-align:right;color:var(--cyan);font-size:9px;font-weight:600}
+input[type=range]{flex:1;height:3px;accent-color:var(--cyan);cursor:pointer;outline:none}
+
+/* GAUGES */
+.grow{display:flex;align-items:center;gap:6px;margin:4px 0}
+.glabel{font-size:7px;font-family:var(--mono);width:58px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.gbar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;border:1px solid var(--border)}
+.gfill{height:100%;border-radius:2px;transition:.6s}
+.gpct{font-size:8px;font-family:var(--mono);width:28px;text-align:right}
+
+/* SIDEBAR ITEMS */
+.ssec{font-size:7px;font-family:var(--mono);color:var(--text3);letter-spacing:2px;
+  text-transform:uppercase;margin:8px 4px 3px}
+.sitem{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:2px;
+  border:1px solid transparent;cursor:pointer;transition:.2s;font-size:9px;
+  font-family:var(--mono);color:var(--text2)}
+.sitem:hover,.sitem.on{background:rgba(0,212,255,.05);border-color:var(--border);color:var(--cyan)}
+.sitem.on{border-color:rgba(0,212,255,.25)}
+.sval2{margin-left:auto;font-size:8px;color:var(--amber)}
+
+/* RIS GRID */
+.risgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;margin:6px 0}
+.rcel{aspect-ratio:1;border-radius:1px;cursor:pointer;transition:.4s;border:1px solid transparent}
+.rcel:hover{transform:scale(1.2);z-index:10;position:relative}
+
+/* BEAM SVG */
+.beamsvg{width:100%;height:170px}
+
+/* TOPO SVG */
+.toposvg{width:100%;height:195px}
+
+/* CHAT */
+.chatbox{background:var(--bg3);border:1px solid var(--border);border-radius:2px;
+  height:175px;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px}
+.cmsg{padding:5px 8px;border-radius:2px;font-size:8px;font-family:var(--mono);line-height:1.6;white-space:pre-line}
+.cuser{background:rgba(0,212,255,.06);border-left:2px solid var(--cyan);color:var(--text)}
+.cai{background:rgba(0,255,136,.04);border-left:2px solid var(--green);color:var(--text2)}
+.cthink{border-left:2px solid var(--amber);color:var(--amber);animation:blink 1s infinite;font-size:7px}
+.cinrow{display:flex;gap:5px;margin-top:5px}
+.cinput{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  font-family:var(--mono);font-size:8px;padding:5px 8px;border-radius:2px;outline:none}
+.cinput:focus{border-color:var(--cyan)}
+.csend{background:rgba(0,212,255,.08);border:1px solid var(--cyan);color:var(--cyan);
+  font-size:7px;font-family:var(--mono);padding:4px 10px;border-radius:2px;cursor:pointer;
+  letter-spacing:1px;transition:.2s;text-transform:uppercase}
+.csend:hover{background:rgba(0,212,255,.18)}
+
+/* RL STATE */
+.rlgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:5px 0}
+.rlcard{background:var(--bg3);border:1px solid var(--border);padding:5px 7px;border-radius:2px;
+  font-size:7px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.rlval{display:block;font-size:13px;font-family:'Rajdhani',sans-serif;font-weight:700;margin-top:2px}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:3px;margin:4px 0}
+.pill{font-size:6px;font-family:var(--mono);padding:2px 6px;border-radius:1px;
+  letter-spacing:.5px;text-transform:uppercase;cursor:default}
+.pc{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);color:var(--cyan)}
+.pg{background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.18);color:var(--green)}
+.pp{background:rgba(180,122,255,.05);border:1px solid rgba(180,122,255,.18);color:var(--purple)}
+.pa{background:rgba(255,179,0,.05);border:1px solid rgba(255,179,0,.18);color:var(--amber)}
+.pill[onclick]{cursor:pointer}.pill[onclick]:hover{opacity:.75}
+
+/* LOG */
+.logbox{background:var(--bg3);border:1px solid var(--border);border-radius:2px;
+  height:95px;overflow-y:auto;padding:5px 7px}
+.lline{padding:1px 0;border-bottom:1px solid rgba(26,58,92,.25);font-size:7px;font-family:var(--mono)}
+.lline .ts{color:var(--text3)}.lline .LI{color:var(--cyan)}.lline .OK{color:var(--green)}
+.lline .WA{color:var(--amber)}.lline .RL{color:var(--purple)}
+
+/* MATH */
+.mathbox{font-size:7px;font-family:var(--mono);line-height:2.2}
+.mk{color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;display:block}
+.mv{display:block}
+
+/* VIEW TOGGLES */
+.view{display:none}.view.active{display:block}
+.sidebar-view{display:none}.sidebar-view.active{display:flex;flex-direction:column;gap:8px}
+
+/* TAB BAR */
+.tabbar{display:flex;border-bottom:1px solid var(--border);gap:1px;margin-bottom:10px}
+.tbtn{padding:5px 12px;font-size:8px;font-family:var(--mono);letter-spacing:1px;
+  border:none;border-bottom:2px solid transparent;background:none;color:var(--text3);
+  cursor:pointer;transition:.2s;text-transform:uppercase}
+.tbtn.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tbtn:hover:not(.active){color:var(--text2)}
+.tcontent{display:none}.tcontent.active{display:block}
+
+/* SIM / AI / DEPLOY VIEWS */
+.bigpanel{background:var(--panel);border:1px solid var(--border);border-radius:2px;padding:14px}
+.apicard{background:var(--bg3);border:1px solid var(--border);padding:7px 9px;border-radius:2px}
+.method-post{color:var(--green)}.method-get{color:var(--amber)}.method-ws{color:var(--purple)}
+.ep-name{color:var(--cyan);font-size:8px;font-family:var(--mono);margin-top:2px}
+.ep-desc{color:var(--text3);font-size:7px;font-family:var(--mono);margin-top:2px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+
+<!-- ═══════════════════════ NAV ═══════════════════════ -->
+<nav class="nav">
+  <div class="brand">
+    <svg class="brand-logo" viewBox="0 0 38 38"><polygon points="19,2 35,10.5 35,27.5 19,36 3,27.5 3,10.5" fill="none" stroke="#00d4ff" stroke-width="1.5"/><polygon points="19,8 29,13.5 29,24.5 19,30 9,24.5 9,13.5" fill="rgba(0,212,255,.07)" stroke="#00d4ff" stroke-width=".5"/><text x="19" y="23" text-anchor="middle" font-size="9" fill="#00d4ff" font-family="Share Tech Mono" font-weight="bold">6G</text></svg>
+    <div><div class="brand-name">AI-RIS PLATFORM</div><div class="brand-sub">6G JCAS · v2.4.1</div></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="gotoView('dashboard')">DASHBOARD</button>
+    <button class="ntab" onclick="gotoView('simulation')">SIMULATE</button>
+    <button class="ntab" onclick="gotoView('ai')">AI ENGINE</button>
+    <button class="ntab" onclick="gotoView('deploy')">DEPLOY</button>
+  </div>
+  <div class="nav-right">
+    <div class="spill"><span class="sdot"></span>LIVE</div>
+    <div class="spill" id="fps-el">30 FPS</div>
+    <div class="spill" id="clock-el">00:00:00</div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════ LAYOUT ═══════════════════════ -->
+<div class="layout">
+
+<!-- ── SIDEBAR ─────────────────────────────────────────── -->
+<div class="sidebar">
+
+  <!-- DASHBOARD sidebar -->
+  <div class="sidebar-view active" id="sb-dashboard">
+    <div class="panel" style="padding:10px">
+      <div class="ptitle" style="margin-bottom:6px">NETWORK</div>
+      <div style="font-size:7px;font-family:var(--mono);color:var(--text3);margin-bottom:4px">HEALTH STATUS</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <div style="display:flex;align-items:flex-end;gap:2px;height:18px" id="sigbars">
+          <div style="width:4px;height:4px;background:var(--green);border-radius:1px;box-shadow:0 0 4px var(--green)"></div>
+          <div style="width:4px;height:7px;background:var(--green);border-radius:1px;box-shadow:0 0 4px var(--green)"></div>
+          <div style="width:4px;height:10px;background:var(--green);border-radius:1px;box-shadow:0 0 4px var(--green)"></div>
+          <div style="width:4px;height:13px;background:var(--green);border-radius:1px;box-shadow:0 0 4px var(--green)"></div>
+          <div style="width:4px;height:16px;background:var(--green);border-radius:1px;box-shadow:0 0 4px var(--green)"></div>
+        </div>
+        <span style="font-size:8px;font-family:var(--mono);color:var(--green)">OPTIMAL</span>
+      </div>
+      <div class="grow"><div class="glabel">RIS</div><div class="gbar"><div class="gfill" id="g-ris" style="width:85%;background:var(--cyan)"></div></div><div class="gpct" style="color:var(--cyan)">85%</div></div>
+      <div class="grow"><div class="glabel">BEAM</div><div class="gbar"><div class="gfill" id="g-beam" style="width:72%;background:var(--green)"></div></div><div class="gpct" style="color:var(--green)">72%</div></div>
+      <div class="grow"><div class="glabel">OUTAGE</div><div class="gbar"><div class="gfill" id="g-out" style="width:18%;background:var(--red)"></div></div><div class="gpct" id="g-out-t" style="color:var(--red)">18%</div></div>
+    </div>
+
+    <div class="ssec">MODULES</div>
+    <div class="sitem on"><span style="color:var(--cyan)">◈</span>JCAS CORE<span class="sval2">ON</span></div>
+    <div class="sitem"><span style="color:var(--green)">◈</span>DL ENGINE<span class="sval2">RUN</span></div>
+    <div class="sitem"><span style="color:var(--purple)">◈</span>RL AGENT<span class="sval2" id="sb-reward">+12.4</span></div>
+    <div class="sitem"><span style="color:var(--amber)">◈</span>GEN AI<span class="sval2">READY</span></div>
+    <div class="sitem"><span style="color:var(--blue)">◈</span>KAFKA<span class="sval2">1.2k/s</span></div>
+
+    <div class="ssec">PARAMETERS</div>
+    <div class="srow"><span class="slabel">VELOCITY</span><input type="range" min="0" max="120" value="45" id="sl-vel" oninput="updateSim()"><span class="sval" id="v-vel">45</span></div>
+    <div class="srow"><span class="slabel">ALPHA α</span><input type="range" min="0" max="100" value="60" id="sl-alpha" oninput="updateSim()"><span class="sval" id="v-alpha">.60</span></div>
+    <div class="srow"><span class="slabel">RIS ELEM</span><input type="range" min="16" max="256" value="64" id="sl-ris" oninput="updateSim()"><span class="sval" id="v-ris">64</span></div>
+    <div class="srow"><span class="slabel">TX POWER</span><input type="range" min="0" max="50" value="30" id="sl-pow" oninput="updateSim()"><span class="sval" id="v-pow">30</span></div>
+    <div class="srow"><span class="slabel">USERS</span><input type="range" min="1" max="16" value="4" id="sl-usr" oninput="updateSim()"><span class="sval" id="v-usr">4</span></div>
+    <div class="srow"><span class="slabel">FREQ THz</span><input type="range" min="1" max="10" value="3" id="sl-freq" oninput="updateSim()"><span class="sval" id="v-freq">0.3</span></div>
+
+    <div class="ssec">ALGORITHMS</div>
+    <div class="pills"><span class="pill pc">PPO</span><span class="pill pc">DQN</span><span class="pill pg">CNN</span><span class="pill pg">LSTM</span><span class="pill pp">TRANSFORMER</span><span class="pill pa">RAG</span><span class="pill pc">NOMA</span></div>
+  </div>
+
+  <!-- SIMULATION sidebar -->
+  <div class="sidebar-view" id="sb-simulation">
+    <div class="panel" style="padding:10px">
+      <div class="ptitle" style="margin-bottom:8px">SIM CONFIG</div>
+      <div class="srow"><span class="slabel">TX POWER</span><input type="range" min="0" max="50" value="30" oninput="this.nextElementSibling.textContent=this.value"><span class="sval">30</span></div>
+      <div class="srow"><span class="slabel">RIS BITS</span><input type="range" min="1" max="8" value="4" oninput="this.nextElementSibling.textContent=Math.pow(2,this.value)+' ph'"><span class="sval">16 ph</span></div>
+      <div class="srow"><span class="slabel">USERS</span><input type="range" min="1" max="8" value="4" oninput="this.nextElementSibling.textContent=this.value"><span class="sval">4</span></div>
+      <div class="srow"><span class="slabel">DIST (m)</span><input type="range" min="10" max="500" value="100" oninput="this.nextElementSibling.textContent=this.value"><span class="sval">100</span></div>
+      <div class="srow"><span class="slabel">HUMIDITY</span><input type="range" min="0" max="100" value="50" oninput="this.nextElementSibling.textContent=this.value+'%'"><span class="sval">50%</span></div>
+      <div style="display:flex;gap:5px;margin-top:10px">
+        <button class="csend" style="flex:1" onclick="runSim()">▶ RUN</button>
+        <button class="csend" style="flex:1;border-color:var(--amber);color:var(--amber)" onclick="genData()">⊞ DATA</button>
+      </div>
+    </div>
+    <div class="ssec">DATASET</div>
+    <div class="sitem"><span style="color:var(--cyan)">◈</span>CSI SAMPLES<span class="sval2">10k</span></div>
+    <div class="sitem"><span style="color:var(--green)">◈</span>VELOCITY<span class="sval2">10k</span></div>
+    <div class="sitem"><span style="color:var(--purple)">◈</span>RIS STATES<span class="sval2">10k</span></div>
+    <div class="sitem"><span style="color:var(--amber)">◈</span>PostgreSQL<span class="sval2">ON</span></div>
+    <div class="sitem"><span style="color:var(--blue)">◈</span>S3 BACKUP<span class="sval2">SYNC</span></div>
+  </div>
+
+  <!-- AI sidebar -->
+  <div class="sidebar-view" id="sb-ai">
+    <div class="panel" style="padding:10px">
+      <div class="ptitle" style="margin-bottom:6px">MODEL STATUS</div>
+      <div class="grow"><div class="glabel">CNN</div><div class="gbar"><div class="gfill" style="width:94%;background:var(--cyan)"></div></div><div class="gpct" style="color:var(--cyan)">94%</div></div>
+      <div class="grow"><div class="glabel">LSTM</div><div class="gbar"><div class="gfill" style="width:97%;background:var(--green)"></div></div><div class="gpct" style="color:var(--green)">97%</div></div>
+      <div class="grow"><div class="glabel">TRANS.</div><div class="gbar"><div class="gfill" style="width:91%;background:var(--purple)"></div></div><div class="gpct" style="color:var(--purple)">91%</div></div>
+      <div class="grow"><div class="glabel">PPO RL</div><div class="gbar"><div class="gfill" style="width:88%;background:var(--amber)"></div></div><div class="gpct" style="color:var(--amber)">88%</div></div>
+    </div>
+    <div class="ssec">FRAMEWORKS</div>
+    <div class="pills">
+      <span class="pill pc">PyTorch</span><span class="pill pc">TensorFlow</span>
+      <span class="pill pg">HuggingFace</span><span class="pill pg">SB3</span>
+      <span class="pill pp">LangChain</span><span class="pill pp">OpenAI</span>
+      <span class="pill pa">FAISS</span><span class="pill pa">RAG</span>
+    </div>
+  </div>
+
+  <!-- DEPLOY sidebar -->
+  <div class="sidebar-view" id="sb-deploy">
+    <div class="panel" style="padding:10px">
+      <div class="ptitle" style="margin-bottom:6px">AWS STATUS</div>
+      <div class="grow"><div class="glabel">EC2 GPU</div><div class="gbar"><div class="gfill" style="width:68%;background:var(--cyan)"></div></div><div class="gpct" style="color:var(--cyan)">68%</div></div>
+      <div class="grow"><div class="glabel">KAFKA</div><div class="gbar"><div class="gfill" style="width:45%;background:var(--green)"></div></div><div class="gpct" style="color:var(--green)">45%</div></div>
+      <div class="grow"><div class="glabel">REDIS</div><div class="gbar"><div class="gfill" style="width:30%;background:var(--amber)"></div></div><div class="gpct" style="color:var(--amber)">30%</div></div>
+      <div class="grow"><div class="glabel">SAGEML</div><div class="gbar"><div class="gfill" style="width:55%;background:var(--purple)"></div></div><div class="gpct" style="color:var(--purple)">55%</div></div>
+    </div>
+    <div class="ssec">SERVICES</div>
+    <div class="pills"><span class="pill pc">ECS</span><span class="pill pc">EKS</span><span class="pill pg">S3</span><span class="pill pg">DYNAMO</span><span class="pill pp">LAMBDA</span><span class="pill pp">API GW</span><span class="pill pa">CLOUDWATCH</span><span class="pill pa">ECR</span></div>
+    <div class="ssec">DEVOPS</div>
+    <div class="pills"><span class="pill pc">Docker</span><span class="pill pc">K8s</span><span class="pill pg">Terraform</span><span class="pill pg">GH Actions</span><span class="pill pp">Grafana</span><span class="pill pa">Prometheus</span></div>
+  </div>
+</div>
+
+<!-- ── MAIN COLUMN ─────────────────────────────────────── -->
+<div class="maincol">
+
+  <!-- DASHBOARD VIEW -->
+  <div class="view active" id="view-dashboard">
+
+    <!-- METRICS ROW -->
+    <div class="mrow">
+      <div class="mcard"><div class="mlabel">WSR (Mbps)</div><div class="mval" id="m-wsr" style="color:var(--cyan);text-shadow:0 0 12px rgba(0,212,255,.6)">24.7<span class="munit">M</span></div><div class="mtrend tup">▲ 3.2% vs last</div></div>
+      <div class="mcard"><div class="mlabel">SNR (dB)</div><div class="mval" id="m-snr" style="color:var(--green)">18.4<span class="munit">dB</span></div><div class="mtrend tup">▲ 1.8 dB</div></div>
+      <div class="mcard"><div class="mlabel">DOPPLER (Hz)</div><div class="mval" id="m-dop" style="color:var(--amber)">832<span class="munit">Hz</span></div><div class="mtrend tdn">▼ mobile</div></div>
+      <div class="mcard"><div class="mlabel">OUTAGE (%)</div><div class="mval" id="m-out" style="color:var(--red)">5.3<span class="munit">%</span></div><div class="mtrend tup">▼ 0.8%</div></div>
+      <div class="mcard"><div class="mlabel">RL REWARD</div><div class="mval" id="m-reward" style="color:var(--purple)">12.4</div><div class="mtrend tup">▲ converging</div></div>
+      <div class="mcard"><div class="mlabel">SENSING (dB)</div><div class="mval" id="m-sens" style="color:var(--blue)">-12.3<span class="munit">dB</span></div><div class="mtrend">CLUTTER SUP.</div></div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="g2">
+      <div class="panel">
+        <div class="ptitle">WSR vs VELOCITY<span class="pbadge">LIVE</span></div>
+        <div class="cw" style="height:148px"><canvas id="ch-wsr"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">OUTAGE PROBABILITY<span class="pbadge">AI PRED</span></div>
+        <div class="cw" style="height:148px"><canvas id="ch-out"></canvas></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="g2">
+      <div class="panel">
+        <div class="ptitle">RIS PHASE HEATMAP<span class="pbadge" id="ris-lbl">64 ELEMENTS</span></div>
+        <div class="risgrid" id="risgrid"></div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:7px;font-family:var(--mono);color:var(--text3);margin-top:3px">
+          <span>0°</span><div style="flex:1;height:3px;background:linear-gradient(90deg,#020b14,#00d4ff);border-radius:1px"></div><span>360°</span>
+          <span style="margin-left:6px;color:var(--text2)">Optimized active</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">BEAMFORMING PATTERN<span class="pbadge">AI OPT</span></div>
+        <svg class="beamsvg" viewBox="0 0 300 170" id="beamsvg">
+          <rect width="300" height="170" fill="var(--bg3)"/>
+          <g stroke="var(--border)" stroke-width=".5" fill="none">
+            <ellipse cx="150" cy="155" rx="28" ry="14" opacity=".5"/>
+            <ellipse cx="150" cy="155" rx="56" ry="28" opacity=".4"/>
+            <ellipse cx="150" cy="155" rx="84" ry="42" opacity=".3"/>
+            <ellipse cx="150" cy="155" rx="112" ry="56" opacity=".15"/>
+          </g>
+          <line x1="150" y1="8" x2="150" y2="155" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3 3"/>
+          <line x1="30" y1="155" x2="270" y2="155" stroke="var(--border)" stroke-width=".5"/>
+          <path id="beam-main" fill="rgba(0,212,255,.13)" stroke="#00d4ff" stroke-width="1.5"/>
+          <path id="beam-s1" fill="rgba(0,255,136,.05)" stroke="rgba(0,255,136,.35)" stroke-width=".8"/>
+          <path id="beam-s2" fill="rgba(0,255,136,.05)" stroke="rgba(0,255,136,.35)" stroke-width=".8"/>
+          <text x="152" y="14" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">0°</text>
+          <text x="262" y="158" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">90°</text>
+          <text x="22" y="158" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">-90°</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- TOPOLOGY -->
+    <div class="panel" style="margin-bottom:10px">
+      <div class="ptitle">NETWORK TOPOLOGY — JCAS SCENARIO<span class="pbadge">RIS-ASSISTED</span></div>
+      <svg class="toposvg" viewBox="0 0 620 175">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <path d="M2 2L8 5L2 8" fill="none" stroke="context-stroke" stroke-width="2" stroke-linecap="round"/>
+          </marker>
+        </defs>
+        <!-- BS -->
+        <rect x="15" y="57" width="75" height="60" rx="4" fill="rgba(0,212,255,.07)" stroke="#00d4ff" stroke-width="1"/>
+        <text x="52" y="83" text-anchor="middle" font-size="8" fill="#00d4ff" font-family="Share Tech Mono">BASE</text>
+        <text x="52" y="95" text-anchor="middle" font-size="8" fill="#00d4ff" font-family="Share Tech Mono">STATION</text>
+        <text x="52" y="107" text-anchor="middle" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">gNB · 6G</text>
+        <!-- RIS 1 -->
+        <rect x="235" y="15" width="58" height="48" rx="3" fill="rgba(0,255,204,.05)" stroke="#00ffcc" stroke-width="1"/>
+        <text x="264" y="36" text-anchor="middle" font-size="7" fill="#00ffcc" font-family="Share Tech Mono">RIS-1</text>
+        <text x="264" y="50" text-anchor="middle" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">64 ELEM</text>
+        <g fill="#00ffcc" opacity=".35">
+          <rect x="241" y="20" width="4" height="4"/><rect x="247" y="20" width="4" height="4"/><rect x="253" y="20" width="4" height="4"/>
+          <rect x="241" y="26" width="4" height="4"/><rect x="247" y="26" width="4" height="4"/><rect x="253" y="26" width="4" height="4"/>
+        </g>
+        <!-- RIS 2 -->
+        <rect x="235" y="112" width="58" height="48" rx="3" fill="rgba(0,255,204,.05)" stroke="#00ffcc" stroke-width="1"/>
+        <text x="264" y="133" text-anchor="middle" font-size="7" fill="#00ffcc" font-family="Share Tech Mono">RIS-2</text>
+        <text x="264" y="147" text-anchor="middle" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">64 ELEM</text>
+        <!-- Sensing Target -->
+        <rect x="390" y="73" width="50" height="28" rx="3" fill="rgba(255,179,0,.07)" stroke="var(--amber)" stroke-width="1"/>
+        <text x="415" y="90" text-anchor="middle" font-size="7" fill="var(--amber)" font-family="Share Tech Mono">TARGET</text>
+        <!-- UEs -->
+        <circle cx="510" cy="38" r="16" fill="rgba(58,143,255,.07)" stroke="#3a8fff" stroke-width="1"/>
+        <text x="510" y="42" text-anchor="middle" font-size="7" fill="#3a8fff" font-family="Share Tech Mono">UE1</text>
+        <circle cx="555" cy="87" r="16" fill="rgba(58,143,255,.07)" stroke="#3a8fff" stroke-width="1"/>
+        <text x="555" y="91" text-anchor="middle" font-size="7" fill="#3a8fff" font-family="Share Tech Mono">UE2</text>
+        <circle cx="510" cy="137" r="16" fill="rgba(58,143,255,.07)" stroke="#3a8fff" stroke-width="1"/>
+        <text x="510" y="141" text-anchor="middle" font-size="7" fill="#3a8fff" font-family="Share Tech Mono">UE3</text>
+        <!-- Paths -->
+        <line x1="90" y1="87" x2="235" y2="39" stroke="rgba(0,212,255,.28)" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+        <line x1="90" y1="87" x2="235" y2="136" stroke="rgba(0,212,255,.28)" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+        <line x1="293" y1="39" x2="390" y2="80" stroke="rgba(0,255,204,.4)" stroke-width="1.5" marker-end="url(#ar)"/>
+        <line x1="293" y1="136" x2="390" y2="95" stroke="rgba(0,255,204,.4)" stroke-width="1.5" marker-end="url(#ar)"/>
+        <line x1="440" y1="82" x2="494" y2="47" stroke="rgba(58,143,255,.3)" stroke-width="1" marker-end="url(#ar)"/>
+        <line x1="440" y1="87" x2="539" y2="87" stroke="rgba(58,143,255,.3)" stroke-width="1" marker-end="url(#ar)"/>
+        <line x1="440" y1="92" x2="494" y2="128" stroke="rgba(58,143,255,.3)" stroke-width="1" marker-end="url(#ar)"/>
+        <line x1="400" y1="80" x2="305" y2="40" stroke="rgba(255,179,0,.2)" stroke-width=".8" stroke-dasharray="2 3" marker-end="url(#ar)"/>
+        <!-- Labels -->
+        <text x="145" y="55" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">THz · NLOS</text>
+        <text x="300" y="75" font-size="6" fill="rgba(0,255,204,.5)" font-family="Share Tech Mono">REFLECTED</text>
+        <text x="350" y="68" font-size="6" fill="rgba(255,179,0,.6)" font-family="Share Tech Mono">RADAR ECHO</text>
+        <text x="600" y="10" text-anchor="end" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">JCAS: Joint Communication &amp; Sensing</text>
+      </svg>
+    </div>
+
+    <!-- RL + LOG -->
+    <div class="g2">
+      <div class="panel">
+        <div class="ptitle">RL AGENT — PPO<span class="pbadge">TRAINING</span></div>
+        <div class="rlgrid">
+          <div class="rlcard">SNR<span class="rlval" id="rl-snr" style="color:var(--cyan)">18.4</span></div>
+          <div class="rlcard">VELOCITY<span class="rlval" id="rl-vel" style="color:var(--amber)">45 km/h</span></div>
+          <div class="rlcard">ACTION α<span class="rlval" id="rl-alpha" style="color:var(--cyan)">0.60</span></div>
+          <div class="rlcard">REWARD<span class="rlval" id="rl-rw" style="color:var(--green)">12.4</span></div>
+        </div>
+        <div class="cw" style="height:75px"><canvas id="ch-rl"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">SYSTEM LOG<span class="pbadge">STREAMING</span></div>
+        <div class="logbox" id="logbox"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIMULATION VIEW -->
+  <div class="view" id="view-simulation">
+    <div class="g2" style="margin-bottom:10px">
+      <div class="bigpanel" style="grid-column:span 2">
+        <div class="ptitle" style="margin-bottom:10px">WSR vs RIS ELEMENTS — MULTI-ALPHA ANALYSIS<span class="pbadge">SIMULATION</span></div>
+        <div class="cw" style="height:230px"><canvas id="ch-sim"></canvas></div>
+      </div>
+      <div class="bigpanel" style="grid-column:span 2">
+        <div class="ptitle" style="margin-bottom:10px">SNR SURFACE vs DISTANCE × FREQUENCY<span class="pbadge">THz MODEL</span></div>
+        <div class="cw" style="height:180px"><canvas id="ch-snrmap"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI ENGINE VIEW -->
+  <div class="view" id="view-ai">
+    <div class="g2" style="margin-bottom:10px">
+      <div class="bigpanel">
+        <div class="ptitle" style="margin-bottom:8px">DEEP LEARNING MODELS</div>
+        <div class="tabbar">
+          <button class="tbtn active" onclick="aiTab('cnn',this)">CNN</button>
+          <button class="tbtn" onclick="aiTab('lstm',this)">LSTM</button>
+          <button class="tbtn" onclick="aiTab('tran',this)">TRANSFORMER</button>
+        </div>
+        <div id="ai-cnn" class="tcontent active" style="font-size:8px;font-family:var(--mono);color:var(--text2);line-height:2.2">
+          <b style="color:var(--cyan)">PURPOSE:</b> CSI Feature Extraction + RIS Spatial Learning<br>
+          <b style="color:var(--text3)">INPUT:</b> CSI matrices (NxN), RIS states, SNR maps<br>
+          <b style="color:var(--green)">OUTPUT:</b> Optimized spatial features<br>
+          <b style="color:var(--text3)">ARCH:</b> Conv2d(64)→BN→ReLU → Conv2d(128)→BN→ReLU → Conv2d(256)→GAP → FC(512)→FC(128)<br>
+          <b style="color:var(--green)">ACCURACY:</b> 94.7% | LOSS: 0.031 | PARAMS: 4.2M
+        </div>
+        <div id="ai-lstm" class="tcontent" style="font-size:8px;font-family:var(--mono);color:var(--text2);line-height:2.2">
+          <b style="color:var(--amber)">PURPOSE:</b> Mobility + Velocity Prediction<br>
+          <b style="color:var(--text3)">INPUT:</b> Temporal CSI (seq=32), Doppler history<br>
+          <b style="color:var(--green)">OUTPUT:</b> Future SNR, velocity estimate<br>
+          <b style="color:var(--text3)">ARCH:</b> LSTM(256)→LSTM(128,drop=0.2)→Attention(4 heads)→FC(64)<br>
+          <b style="color:var(--green)">RMSE:</b> 2.1 km/h | R²: 0.97 | PARAMS: 2.8M
+        </div>
+        <div id="ai-tran" class="tcontent" style="font-size:8px;font-family:var(--mono);color:var(--text2);line-height:2.2">
+          <b style="color:var(--purple)">PURPOSE:</b> Beamforming Optimization<br>
+          <b style="color:var(--text3)">INPUT:</b> Channel state, user positions<br>
+          <b style="color:var(--green)">OUTPUT:</b> Optimal beam weights<br>
+          <b style="color:var(--text3)">ARCH:</b> Embed(d=256)→MultiHead-Attn(8)→FFN(1024)×6→BeamOut<br>
+          <b style="color:var(--green)">GAIN:</b> +4.2 dB over baseline | PARAMS: 12.4M
+        </div>
+      </div>
+      <div class="bigpanel">
+        <div class="ptitle" style="margin-bottom:10px">RL CONVERGENCE — PPO vs DQN</div>
+        <div class="cw" style="height:200px"><canvas id="ch-rl-full"></canvas></div>
+      </div>
+      <div class="bigpanel" style="grid-column:span 2">
+        <div class="ptitle" style="margin-bottom:10px">FASTAPI ENDPOINTS — BACKEND</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+          <div class="apicard"><div class="method-post" style="font-size:7px;font-family:var(--mono)">POST</div><div class="ep-name">/simulate</div><div class="ep-desc">Run wireless sim</div></div>
+          <div class="apicard"><div class="method-post" style="font-size:7px;font-family:var(--mono)">POST</div><div class="ep-name">/predict_snr</div><div class="ep-desc">AI SNR forecast</div></div>
+          <div class="apicard"><div class="method-post" style="font-size:7px;font-family:var(--mono)">POST</div><div class="ep-name">/optimize_ris</div><div class="ep-desc">RIS phase opt</div></div>
+          <div class="apicard"><div class="method-get" style="font-size:7px;font-family:var(--mono)">GET</div><div class="ep-name">/calculate_wsr</div><div class="ep-desc">WSR analytics</div></div>
+          <div class="apicard"><div class="method-post" style="font-size:7px;font-family:var(--mono)">POST</div><div class="ep-name">/llm_assistant</div><div class="ep-desc">AI Q&amp;A engine</div></div>
+          <div class="apicard"><div class="method-post" style="font-size:7px;font-family:var(--mono)">POST</div><div class="ep-name">/predict_outage</div><div class="ep-desc">Outage AI pred</div></div>
+          <div class="apicard"><div class="method-post" style="font-size:7px;font-family:var(--mono)">POST</div><div class="ep-name">/beamforming</div><div class="ep-desc">Beam optimize</div></div>
+          <div class="apicard"><div class="method-ws" style="font-size:7px;font-family:var(--mono)">WS</div><div class="ep-name">/real_time</div><div class="ep-desc">Live streaming</div></div>
+          <div class="apicard"><div class="method-get" style="font-size:7px;font-family:var(--mono)">GET</div><div class="ep-name">/dashboard_data</div><div class="ep-desc">Metrics feed</div></div>
+          <div class="apicard"><div class="method-post" style="font-size:7px;font-family:var(--mono)">POST</div><div class="ep-name">/predict_velocity</div><div class="ep-desc">Doppler + vel</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEPLOY VIEW -->
+  <div class="view" id="view-deploy">
+    <div class="g2">
+      <div class="bigpanel">
+        <div class="ptitle" style="margin-bottom:10px">AWS ARCHITECTURE</div>
+        <svg viewBox="0 0 420 300" width="100%">
+          <rect x="8" y="8" width="404" height="284" rx="6" fill="none" stroke="rgba(255,179,0,.15)" stroke-width="1" stroke-dasharray="5 4"/>
+          <text x="210" y="24" text-anchor="middle" font-size="8" fill="rgba(255,179,0,.4)" font-family="Share Tech Mono">AWS CLOUD INFRASTRUCTURE</text>
+          <!-- ECS -->
+          <rect x="16" y="32" width="185" height="120" rx="4" fill="rgba(0,212,255,.03)" stroke="var(--border)" stroke-width=".5"/>
+          <text x="108" y="48" text-anchor="middle" font-size="7" fill="var(--cyan)" font-family="Share Tech Mono">ECS / K8S CLUSTER</text>
+          <rect x="24" y="55" width="78" height="32" rx="2" fill="rgba(0,212,255,.07)" stroke="rgba(0,212,255,.25)" stroke-width=".5"/>
+          <text x="63" y="75" text-anchor="middle" font-size="6" fill="var(--cyan)" font-family="Share Tech Mono">FastAPI Backend</text>
+          <rect x="112" y="55" width="78" height="32" rx="2" fill="rgba(0,255,136,.05)" stroke="rgba(0,255,136,.2)" stroke-width=".5"/>
+          <text x="151" y="75" text-anchor="middle" font-size="6" fill="var(--green)" font-family="Share Tech Mono">React Frontend</text>
+          <rect x="24" y="97" width="78" height="32" rx="2" fill="rgba(180,122,255,.05)" stroke="rgba(180,122,255,.2)" stroke-width=".5"/>
+          <text x="63" y="117" text-anchor="middle" font-size="6" fill="var(--purple)" font-family="Share Tech Mono">AI Worker Pod</text>
+          <rect x="112" y="97" width="78" height="32" rx="2" fill="rgba(255,179,0,.05)" stroke="rgba(255,179,0,.2)" stroke-width=".5"/>
+          <text x="151" y="117" text-anchor="middle" font-size="6" fill="var(--amber)" font-family="Share Tech Mono">RL Engine Pod</text>
+          <!-- SageMaker -->
+          <rect x="210" y="32" width="110" height="55" rx="4" fill="rgba(0,212,255,.03)" stroke="var(--border)" stroke-width=".5"/>
+          <text x="265" y="52" text-anchor="middle" font-size="7" fill="var(--cyan)" font-family="Share Tech Mono">SAGEMAKER</text>
+          <text x="265" y="65" text-anchor="middle" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">GPU · Model Serving</text>
+          <!-- Kafka -->
+          <rect x="210" y="97" width="110" height="55" rx="4" fill="rgba(0,255,136,.02)" stroke="var(--border)" stroke-width=".5"/>
+          <text x="265" y="117" text-anchor="middle" font-size="7" fill="var(--green)" font-family="Share Tech Mono">KAFKA MSK</text>
+          <text x="265" y="130" text-anchor="middle" font-size="6" fill="var(--text3)" font-family="Share Tech Mono">Event Streaming 1.2k/s</text>
+          <!-- DBs -->
+          <rect x="330" y="32" width="82" height="120" rx="4" fill="rgba(58,143,255,.03)" stroke="var(--border)" stroke-width=".5"/>
+          <text x="371" y="48" text-anchor="middle" font-size="7" fill="var(--blue)" font-family="Share Tech Mono">DATA LAYER</text>
+          <rect x="338" y="55" width="66" height="22" rx="2" fill="rgba(58,143,255,.07)" stroke="rgba(58,143,255,.2)" stroke-width=".5"/>
+          <text x="371" y="70" text-anchor="middle" font-size="6" fill="var(--blue)" font-family="Share Tech Mono">DynamoDB</text>
+          <rect x="338" y="83" width="66" height="22" rx="2" fill="rgba(58,143,255,.07)" stroke="rgba(58,143,255,.2)" stroke-width=".5"/>
+          <text x="371" y="98" text-anchor="middle" font-size="6" fill="var(--blue)" font-family="Share Tech Mono">PostgreSQL</text>
+          <rect x="338" y="111" width="66" height="22" rx="2" fill="rgba(58,143,255,.07)" stroke="rgba(58,143,255,.2)" stroke-width=".5"/>
+          <text x="371" y="126" text-anchor="middle" font-size="6" fill="var(--blue)" font-family="Share Tech Mono">Redis Cache</text>
+          <!-- Serverless -->
+          <rect x="16" y="162" width="396" height="115" rx="4" fill="rgba(255,179,0,.02)" stroke="var(--border)" stroke-width=".5"/>
+          <text x="214" y="178" text-anchor="middle" font-size="7" fill="var(--amber)" font-family="Share Tech Mono">SERVERLESS + STORAGE LAYER</text>
+          <rect x="24" y="186" width="90" height="28" rx="2" fill="rgba(255,179,0,.06)" stroke="rgba(255,179,0,.18)" stroke-width=".5"/>
+          <text x="69" y="204" text-anchor="middle" font-size="6" fill="var(--amber)" font-family="Share Tech Mono">API Gateway</text>
+          <rect x="124" y="186" width="90" height="28" rx="2" fill="rgba(255,179,0,.06)" stroke="rgba(255,179,0,.18)" stroke-width=".5"/>
+          <text x="169" y="204" text-anchor="middle" font-size="6" fill="var(--amber)" font-family="Share Tech Mono">Lambda</text>
+          <rect x="224" y="186" width="90" height="28" rx="2" fill="rgba(255,179,0,.06)" stroke="rgba(255,179,0,.18)" stroke-width=".5"/>
+          <text x="269" y="204" text-anchor="middle" font-size="6" fill="var(--amber)" font-family="Share Tech Mono">S3 Storage</text>
+          <rect x="324" y="186" width="82" height="28" rx="2" fill="rgba(255,179,0,.06)" stroke="rgba(255,179,0,.18)" stroke-width=".5"/>
+          <text x="365" y="204" text-anchor="middle" font-size="6" fill="var(--amber)" font-family="Share Tech Mono">CloudWatch</text>
+          <text x="210" y="255" text-anchor="middle" font-size="7" fill="var(--text3)" font-family="Share Tech Mono">Terraform IaC · GitHub Actions CI/CD · Docker · Kubernetes</text>
+          <text x="210" y="270" text-anchor="middle" font-size="6" fill="var(--border2)" font-family="Share Tech Mono">Grafana Monitoring · Prometheus Metrics · ECR Registry</text>
+        </svg>
+      </div>
+      <div class="bigpanel">
+        <div class="ptitle" style="margin-bottom:10px">DEVOPS PIPELINE</div>
+        <div style="font-size:8px;font-family:var(--mono);line-height:2.4">
+          <div><span style="color:var(--cyan)">01</span> <span style="color:var(--text3)">CODE PUSH →</span> <span style="color:var(--cyan)">GitHub → Actions CI</span></div>
+          <div><span style="color:var(--cyan)">02</span> <span style="color:var(--text3)">BUILD →</span> <span style="color:var(--green)">Docker Image → ECR Push</span></div>
+          <div><span style="color:var(--cyan)">03</span> <span style="color:var(--text3)">TEST →</span> <span style="color:var(--amber)">pytest + model eval + perf</span></div>
+          <div><span style="color:var(--cyan)">04</span> <span style="color:var(--text3)">INFRA →</span> <span style="color:var(--purple)">Terraform plan + apply</span></div>
+          <div><span style="color:var(--cyan)">05</span> <span style="color:var(--text3)">DEPLOY →</span> <span style="color:var(--cyan)">kubectl apply → EKS</span></div>
+          <div><span style="color:var(--cyan)">06</span> <span style="color:var(--text3)">MODEL →</span> <span style="color:var(--green)">SageMaker register + serve</span></div>
+          <div><span style="color:var(--cyan)">07</span> <span style="color:var(--text3)">MONITOR →</span> <span style="color:var(--amber)">CloudWatch + Grafana</span></div>
+        </div>
+        <div class="ptitle" style="margin:12px 0 8px">FULL TECH STACK</div>
+        <div class="pills">
+          <span class="pill pc">FastAPI</span><span class="pill pc">Python 3.11</span><span class="pill pc">WebSocket</span>
+          <span class="pill pg">PyTorch</span><span class="pill pg">TensorFlow</span><span class="pill pg">HuggingFace</span><span class="pill pg">SB3</span>
+          <span class="pill pp">LangChain</span><span class="pill pp">OpenAI</span><span class="pill pp">FAISS RAG</span>
+          <span class="pill pa">React</span><span class="pill pa">Next.js</span><span class="pill pa">Tailwind</span><span class="pill pa">Plotly</span><span class="pill pa">Three.js</span>
+          <span class="pill pc">Docker</span><span class="pill pc">Kubernetes</span><span class="pill pc">Terraform</span><span class="pill pc">GH Actions</span>
+          <span class="pill pg">Kafka</span><span class="pill pg">Redis</span><span class="pill pp">PostgreSQL</span><span class="pill pp">MongoDB</span>
+          <span class="pill pa">AWS EC2 GPU</span><span class="pill pa">SageMaker</span><span class="pill pc">Lambda</span><span class="pill pc">S3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RIGHT PANEL ─────────────────────────────────────── -->
+<div class="rightcol">
+  <!-- AI ASSISTANT -->
+  <div class="panel">
+    <div class="ptitle" style="margin-bottom:6px">AI WIRELESS ASSISTANT<span class="pbadge">LLM+RAG</span></div>
+    <div class="chatbox" id="chatbox">
+      <div class="cmsg cai">▸ AI-RIS Assistant online. Monitoring 6G JCAS network. Ask about outage, RIS optimization, beamforming, or WSR tradeoffs.</div>
+    </div>
+    <div class="cinrow">
+      <input class="cinput" id="chat-in" placeholder="Ask the AI assistant..." onkeydown="if(event.key==='Enter')doChat()">
+      <button class="csend" onclick="doChat()">SEND</button>
+    </div>
+    <div class="pills" style="margin-top:4px">
+      <span class="pill pc" onclick="quickQ('Why is outage high?')" style="cursor:pointer">OUTAGE?</span>
+      <span class="pill pg" onclick="quickQ('Optimize RIS now')" style="cursor:pointer">OPT RIS</span>
+      <span class="pill pp" onclick="quickQ('Explain WSR tradeoff')" style="cursor:pointer">WSR?</span>
+      <span class="pill pa" onclick="quickQ('Beamforming status')" style="cursor:pointer">BEAM</span>
+    </div>
+  </div>
+
+  <!-- ERGODIC -->
+  <div class="panel">
+    <div class="ptitle" style="margin-bottom:6px">ERGODIC RATE vs α</div>
+    <div class="cw" style="height:90px"><canvas id="ch-erg"></canvas></div>
+  </div>
+
+  <!-- WSR vs POWER -->
+  <div class="panel">
+    <div class="ptitle" style="margin-bottom:6px">WSR vs TX POWER</div>
+    <div class="cw" style="height:90px"><canvas id="ch-pow"></canvas></div>
+  </div>
+
+  <!-- COMM vs SENSING -->
+  <div class="panel">
+    <div class="ptitle" style="margin-bottom:6px">COMM vs SENSING<span class="pbadge">TRADEOFF</span></div>
+    <div class="cw" style="height:90px"><canvas id="ch-trade"></canvas></div>
+  </div>
+
+  <!-- MATH MODELS -->
+  <div class="panel">
+    <div class="ptitle" style="margin-bottom:6px">MATH MODELS</div>
+    <div class="mathbox">
+      <span class="mk">THz PATH LOSS:</span>
+      <span class="mv" style="color:var(--cyan)">L(d,f) = Lspread + Labs</span>
+      <span class="mk">RIS CHANNEL:</span>
+      <span class="mv" style="color:var(--green)">h_eff = h_d + Σ(h_r·Φ·g)</span>
+      <span class="mk">WEIGHTED SUM RATE:</span>
+      <span class="mv" style="color:var(--amber)">WSR = α·Rc + (1-α)·Rs</span>
+      <span class="mk">DOPPLER SHIFT:</span>
+      <span class="mv" style="color:var(--purple)">f_d = v·f/c = <span id="dop-live">833</span> Hz</span>
+      <span class="mk">SINR:</span>
+      <span class="mv" style="color:var(--blue)">SINR = P|h|²/(I+N₀)</span>
+      <span class="mk">OUTAGE PROB:</span>
+      <span class="mv" style="color:var(--red)">P_out = P(R &lt; R_th)</span>
+    </div>
+  </div>
+
+  <!-- CLOUD STATUS -->
+  <div class="panel">
+    <div class="ptitle" style="margin-bottom:6px">CLOUD · AWS</div>
+    <div class="grow"><div class="glabel">EC2 GPU</div><div class="gbar"><div class="gfill" style="width:68%;background:var(--cyan)"></div></div><div class="gpct" style="color:var(--cyan)">68%</div></div>
+    <div class="grow"><div class="glabel">KAFKA</div><div class="gbar"><div class="gfill" style="width:45%;background:var(--green)"></div></div><div class="gpct" style="color:var(--green)">1.2k</div></div>
+    <div class="grow"><div class="glabel">REDIS</div><div class="gbar"><div class="gfill" style="width:30%;background:var(--amber)"></div></div><div class="gpct" style="color:var(--amber)">30%</div></div>
+    <div class="grow"><div class="glabel">SAGE ML</div><div class="gbar"><div class="gfill" style="width:55%;background:var(--purple)"></div></div><div class="gpct" style="color:var(--purple)">55%</div></div>
+  </div>
+</div>
+</div><!-- end layout -->
+
+<!-- ═══════════════════════ JAVASCRIPT ═══════════════════════ -->
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────
+const S = {vel:45,alpha:0.6,ris:64,pow:30,users:4,freq:0.3,
+  snr:18.4,wsr:24.7,out:5.3,dop:833,reward:12.4,t:0,chatBusy:false};
+const C3 = SPEED => 3e8;
+const SPEED = 3e8;
+
+// ── PHYSICS ──────────────────────────────────────────────────────────────
+function dB(x){return 10*Math.log10(Math.max(x,1e-15));}
+function undB(x){return Math.pow(10,x/10);}
+function pathLoss(d,f){
+  const fhz=f*1e12;
+  const Ls=20*Math.log10(4*Math.PI*d*fhz/SPEED);
+  const La=10*Math.log10(Math.exp(0.002*f*d));
+  return Ls+La;
+}
+function calcAll(){
+  const {vel,alpha,ris,pow,users,freq} = S;
+  const d=100, N=undB(-90-30);
+  const pl=pathLoss(d,freq);
+  const h2=undB(-pl)*ris*0.05;
+  const txW=undB(pow-30);
+  const I=(users-1)*txW*0.001;
+  const sinr=txW*h2/(I+N);
+  const snr=dB(sinr);
+  const Rc=Math.log2(1+sinr);
+  const Rs=Math.max(0.1,2.5-vel*0.015+ris*0.01);
+  const wsr=alpha*Rc+(1-alpha)*Rs;
+  const out=(1-Math.exp(-undB(10)/Math.max(sinr,1e-10)))*100;
+  const dop=Math.round((vel/3.6)*(freq*1e12)/SPEED);
+  const reward=wsr-2*(out/100)+ris*0.02;
+  S.snr=+snr.toFixed(1);S.wsr=+wsr.toFixed(2);
+  S.out=+out.toFixed(2);S.dop=dop;S.reward=+reward.toFixed(2);
+}
+
+// ── VIEW SWITCHING ────────────────────────────────────────────────────────
+function gotoView(v){
+  ['dashboard','simulation','ai','deploy'].forEach(id=>{
+    document.getElementById('view-'+id).classList.toggle('active',id===v);
+    const sb=document.getElementById('sb-'+id);
+    if(sb) sb.classList.toggle('active',id===v);
+  });
+  document.querySelectorAll('.ntab').forEach((t,i)=>{
+    t.classList.toggle('active',['dashboard','simulation','ai','deploy'][i]===v);
+  });
+  if(v==='simulation') setTimeout(initSimCharts,50);
+  if(v==='ai') setTimeout(initAICharts,50);
+}
+
+// ── AI TAB SWITCHING ──────────────────────────────────────────────────────
+function aiTab(id,btn){
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['cnn','lstm','tran'].forEach(k=>{
+    document.getElementById('ai-'+k).classList.toggle('active',k===id);
+  });
+}
+
+// ── SIM UPDATE ─────────────────────────────────────────────────────────────
+function updateSim(){
+  S.vel=+document.getElementById('sl-vel').value;
+  S.alpha=+(+document.getElementById('sl-alpha').value/100).toFixed(2);
+  S.ris=+document.getElementById('sl-ris').value;
+  S.pow=+document.getElementById('sl-pow').value;
+  S.users=+document.getElementById('sl-usr').value;
+  S.freq=+(+document.getElementById('sl-freq').value*0.1).toFixed(2);
+  document.getElementById('v-vel').textContent=S.vel;
+  document.getElementById('v-alpha').textContent=S.alpha.toFixed(2);
+  document.getElementById('v-ris').textContent=S.ris;
+  document.getElementById('v-pow').textContent=S.pow;
+  document.getElementById('v-usr').textContent=S.users;
+  document.getElementById('v-freq').textContent=S.freq.toFixed(1);
+  calcAll();
+  updateDisplay();
+  updateRIS();
+  updateBeam();
+}
+
+function updateDisplay(){
+  const {snr,wsr,out,dop,reward} = S;
+  document.getElementById('m-wsr').innerHTML=wsr.toFixed(1)+'<span class="munit">M</span>';
+  document.getElementById('m-snr').innerHTML=snr.toFixed(1)+'<span class="munit">dB</span>';
+  document.getElementById('m-dop').innerHTML=dop+'<span class="munit">Hz</span>';
+  document.getElementById('m-out').innerHTML=out.toFixed(1)+'<span class="munit">%</span>';
+  document.getElementById('m-reward').textContent=reward.toFixed(1);
+  document.getElementById('m-sens').innerHTML=(-12.3+S.ris*0.02-S.vel*0.03).toFixed(1)+'<span class="munit">dB</span>';
+  document.getElementById('rl-snr').textContent=snr.toFixed(1);
+  document.getElementById('rl-vel').textContent=S.vel+' km/h';
+  document.getElementById('rl-alpha').textContent=S.alpha.toFixed(2);
+  document.getElementById('rl-rw').textContent=reward.toFixed(1);
+  document.getElementById('sb-reward').textContent='+'+reward.toFixed(1);
+  document.getElementById('dop-live').textContent=dop;
+  document.getElementById('g-out').style.width=Math.min(out*2,100)+'%';
+  document.getElementById('g-out-t').textContent=out.toFixed(0)+'%';
+  document.getElementById('g-ris').style.width=(S.ris/256*100).toFixed(0)+'%';
+  document.getElementById('ris-lbl').textContent=S.ris+' ELEMENTS';
+}
+
+// ── RIS GRID ──────────────────────────────────────────────────────────────
+function updateRIS(){
+  const grid=document.getElementById('risgrid');
+  const n=Math.min(S.ris,100);
+  const cols=Math.min(n,10);
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  if(grid.children.length!==n){
+    grid.innerHTML='';
+    for(let i=0;i<n;i++){
+      const c=document.createElement('div');
+      c.className='rcel';c.title='Element '+(i+1);
+      grid.appendChild(c);
+    }
+  }
+  grid.querySelectorAll('.rcel').forEach((c,i)=>{
+    const ph=(i/n*360+S.vel*2+S.t*4)%360;
+    c.style.background=`hsl(${ph},80%,${25+ph/360*25}%)`;
+    c.style.borderColor=ph>180?'rgba(0,212,255,.3)':'transparent';
+  });
+}
+
+// ── BEAMFORMING ───────────────────────────────────────────────────────────
+function updateBeam(){
+  const cx=150,cy=155;
+  const bw=Math.max(5,30-S.ris*0.08+S.vel*0.04);
+  const bl=Math.min(75+S.ris*0.28,130);
+  document.getElementById('beam-main').setAttribute('d',beamPath(cx,cy,0,bw,bl));
+  document.getElementById('beam-s1').setAttribute('d',beamPath(cx,cy,-42,bw*1.7,bl*0.48));
+  document.getElementById('beam-s2').setAttribute('d',beamPath(cx,cy,42,bw*1.7,bl*0.48));
+}
+function beamPath(cx,cy,ang,w,L){
+  const r0=ang*Math.PI/180;
+  const hw=w*Math.PI/180;
+  const pts=[];
+  for(let i=-hw;i<=hw;i+=0.05){
+    const a=r0+i, r=L*Math.exp(-i*i/(0.0003+w*0.0001));
+    pts.push([cx+r*Math.sin(a),cy-r*Math.cos(a)]);
+  }
+  if(!pts.length)return '';
+  let d=`M${cx} ${cy} L${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for(let i=1;i<pts.length;i++) d+=` L${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)}`;
+  return d+'Z';
+}
+
+// ── CHARTS ────────────────────────────────────────────────────────────────
+const CHS = {};
+const BASE_OPTS = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{
+    backgroundColor:'rgba(5,15,26,.96)',borderColor:'rgba(0,212,255,.3)',borderWidth:1,
+    titleColor:'#00d4ff',bodyColor:'#c8e6f8',
+    titleFont:{family:'Share Tech Mono',size:9},bodyFont:{family:'Share Tech Mono',size:8}
+  }},
+  scales:{
+    x:{ticks:{color:'#3a6080',font:{family:'Share Tech Mono',size:7}},grid:{color:'rgba(26,58,92,.35)'},border:{color:'rgba(26,58,92,.5)'}},
+    y:{ticks:{color:'#3a6080',font:{family:'Share Tech Mono',size:7}},grid:{color:'rgba(26,58,92,.35)'},border:{color:'rgba(26,58,92,.5)'}}
+  }
+};
+
+function mkChart(id,type,data,extra={}){
+  const el=document.getElementById(id);if(!el)return;
+  if(CHS[id]){CHS[id].destroy();}
+  CHS[id]=new Chart(el,{type,data,options:{...BASE_OPTS,...extra,responsive:true,maintainAspectRatio:false}});
+  return CHS[id];
+}
+
+function initMainCharts(){
+  // WSR live
+  mkChart('ch-wsr','line',{labels:[],datasets:[
+    {label:'WSR+RIS',data:[],borderColor:'#00d4ff',backgroundColor:'rgba(0,212,255,.07)',borderWidth:2,pointRadius:0,fill:true,tension:.4},
+    {label:'WSR baseline',data:[],borderColor:'rgba(255,60,95,.5)',borderWidth:1,pointRadius:0,fill:false,tension:.4,borderDash:[4,3]}
+  ]});
+  // Outage live
+  mkChart('ch-out','line',{labels:[],datasets:[
+    {label:'P_out',data:[],borderColor:'#ff3c5f',backgroundColor:'rgba(255,60,95,.07)',borderWidth:2,pointRadius:0,fill:true,tension:.4},
+    {label:'AI Pred',data:[],borderColor:'rgba(255,179,0,.6)',borderWidth:1,pointRadius:0,fill:false,tension:.4,borderDash:[3,3]}
+  ]});
+  // RL small
+  const rlD=Array.from({length:40},(_,i)=>-8+i*0.52-Math.random()*2+Math.sin(i*0.4)*1.5);
+  mkChart('ch-rl','line',{labels:rlD.map((_,i)=>i),datasets:[
+    {data:rlD,borderColor:'#b47aff',borderWidth:1.5,pointRadius:0,fill:false,tension:.3}
+  ]},{scales:{x:{display:false},y:{ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}}}});
+  // Ergodic
+  const alps=[0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1];
+  mkChart('ch-erg','line',{labels:alps,datasets:[
+    {label:'Erg Rate',data:alps.map(a=>+(a*Math.log2(1+undB(S.snr))).toFixed(2)),borderColor:'#00ffcc',backgroundColor:'rgba(0,255,204,.05)',borderWidth:2,pointRadius:1,fill:true,tension:.4}
+  ]},{scales:{x:{ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}},y:{ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}}}});
+  // Power
+  const pows=[0,5,10,15,20,25,30,35,40,45,50];
+  mkChart('ch-pow','line',{labels:pows,datasets:[
+    {label:'WSR',data:pows.map(p=>+(S.alpha*Math.log2(1+p*0.8)+S.ris*0.02).toFixed(2)),borderColor:'#3a8fff',backgroundColor:'rgba(58,143,255,.05)',borderWidth:2,pointRadius:1,fill:true,tension:.4}
+  ]},{scales:{x:{ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}},y:{ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}}}});
+  // Tradeoff scatter
+  mkChart('ch-trade','scatter',{datasets:[
+    {label:'Op Points',data:Array.from({length:15},()=>({x:+(Math.random()*18+4).toFixed(1),y:+(Math.random()*13+3).toFixed(1)})),borderColor:'#ffb300',backgroundColor:'rgba(255,179,0,.25)',pointRadius:4},
+    {label:'Pareto',data:[{x:4,y:16},{x:7,y:14},{x:10,y:11},{x:13,y:8},{x:16,y:5}],borderColor:'#00d4ff',backgroundColor:'transparent',pointRadius:3,showLine:true,borderWidth:1.5,tension:.4}
+  ]},{scales:{x:{title:{display:true,text:'Comm Rate (Mbps)',color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}},y:{title:{display:true,text:'Sensing SINR',color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}}}});
+}
+
+function initSimCharts(){
+  const Rs=[16,32,64,128,256];
+  mkChart('ch-sim','line',{labels:Rs,datasets:[
+    {label:'α=0.3',data:Rs.map(r=>+((0.3*Math.log2(1+r*.8)+0.7*2)*2.5).toFixed(2)),borderColor:'#3a8fff',borderWidth:2,pointRadius:3,fill:false,tension:.4},
+    {label:'α=0.5',data:Rs.map(r=>+((0.5*Math.log2(1+r*.8)+0.5*2)*2.5).toFixed(2)),borderColor:'#00ffcc',borderWidth:2,pointRadius:3,fill:false,tension:.4},
+    {label:'α=0.7',data:Rs.map(r=>+((0.7*Math.log2(1+r*.8)+0.3*2)*2.5).toFixed(2)),borderColor:'#00d4ff',borderWidth:2,pointRadius:3,fill:false,tension:.4},
+    {label:'α=0.9',data:Rs.map(r=>+((0.9*Math.log2(1+r*.8)+0.1*2)*2.5).toFixed(2)),borderColor:'#ffb300',borderWidth:2,pointRadius:3,fill:false,tension:.4},
+  ]},{plugins:{legend:{display:true,labels:{color:'#7aadcf',font:{family:'Share Tech Mono',size:8}}}}});
+  const dists=['10m','50m','100m','200m','500m'];
+  mkChart('ch-snrmap','bar',{labels:dists,datasets:
+    [[0.1,0.3,0.6,1.0].map((f,i)=>({
+      label:`${f} THz`,
+      data:dists.map((_,j)=>Math.max(0,25-j*4-f*8+S.ris*0.05+Math.random()).toFixed(1)),
+      backgroundColor:`hsl(${200-i*30},75%,${22+i*7}%)`
+    }))].flat()
+  },{plugins:{legend:{display:true,labels:{color:'#7aadcf',font:{family:'Share Tech Mono',size:7}}}},scales:{x:{ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}},y:{ticks:{color:'#3a6080',font:{size:7,family:'Share Tech Mono'}},grid:{color:'rgba(26,58,92,.35)'}}}});
+}
+
+function initAICharts(){
+  const eps=Array.from({length:100},(_,i)=>i);
+  mkChart('ch-rl-full','line',{labels:eps,datasets:[
+    {label:'PPO Reward',data:eps.map(i=>-20+i*0.38+Math.sin(i*0.3)*3-Math.random()*3.5),borderColor:'#b47aff',backgroundColor:'rgba(180,122,255,.04)',borderWidth:2,pointRadius:0,fill:true,tension:.4},
+    {label:'DQN Reward',data:eps.map(i=>-20+i*0.30+Math.sin(i*0.2)*4-Math.random()*4.5),borderColor:'#3a8fff',borderWidth:1.5,pointRadius:0,fill:false,tension:.4,borderDash:[3,3]},
+    {label:'Baseline',data:eps.map(()=>0),borderColor:'rgba(58,96,128,.35)',borderWidth:1,pointRadius:0,fill:false}
+  ]},{plugins:{legend:{display:true,labels:{color:'#7aadcf',font:{family:'Share Tech Mono',size:8}}}}});
+}
+
+// ── LIVE DATA LOOP ────────────────────────────────────────────────────────
+function liveTick(){
+  S.t++;
+  const noise=Math.sin(S.t*0.08)*1.8+Math.sin(S.t*0.13)*0.8;
+  const snr=S.snr+noise;
+  const sinr=undB(snr);
+  const Rc=Math.log2(1+sinr);
+  const Rs=Math.max(0.1,2.5-S.vel*0.015+S.ris*0.01);
+  const w=+(S.alpha*Rc+(1-S.alpha)*Rs).toFixed(2);
+  const op=+((1-Math.exp(-undB(10)/Math.max(sinr,1e-10)))*100+Math.random()).toFixed(2);
+
+  // Update WSR chart
+  const cw=CHS['ch-wsr'];
+  if(cw){
+    if(cw.data.labels.length>35){cw.data.labels.shift();cw.data.datasets.forEach(d=>d.data.shift());}
+    cw.data.labels.push(S.t);
+    cw.data.datasets[0].data.push(w);
+    cw.data.datasets[1].data.push(+(w*0.48+Math.random()*0.3).toFixed(2));
+    cw.update('none');
+  }
+  // Update Outage chart
+  const co=CHS['ch-out'];
+  if(co){
+    if(co.data.labels.length>35){co.data.labels.shift();co.data.datasets.forEach(d=>d.data.shift());}
+    co.data.labels.push(S.t);
+    co.data.datasets[0].data.push(op);
+    co.data.datasets[1].data.push(+(op*(0.88+Math.random()*0.15)).toFixed(2));
+    co.update('none');
+  }
+  // Animate display metrics slightly
+  if(S.t%3===0){
+    document.getElementById('m-wsr').innerHTML=w.toFixed(1)+'<span class="munit">M</span>';
+    document.getElementById('m-snr').innerHTML=snr.toFixed(1)+'<span class="munit">dB</span>';
+    document.getElementById('m-out').innerHTML=op.toFixed(1)+'<span class="munit">%</span>';
+  }
+  updateRIS();
+  updateBeam();
+}
+
+// ── LOGGING ───────────────────────────────────────────────────────────────
+const LOGS=[
+  ['LI','RIS phase optimization cycle complete'],
+  ['OK','WSR target exceeded — +2.3 Mbps gain'],
+  ['RL','PPO agent reward updated: +0.42'],
+  ['LI','Beamforming recalculated — 3° adjust'],
+  ['WA','Velocity spike: '+(()=>Math.round(40+Math.random()*40))()+'km/h'],
+  ['OK','Outage probability within threshold'],
+  ['LI','LSTM velocity prediction converged'],
+  ['RL','DQN action: increase alpha by 0.05'],
+  ['OK','SINR stable at '+S.snr+' dB'],
+  ['LI','Kafka: 1247 CSI packets processed'],
+  ['WA','THz absorption peak at 0.56 THz'],
+  ['OK','RIS element #42 phase corrected'],
+];
+function addLog(){
+  const box=document.getElementById('logbox');if(!box)return;
+  const m=LOGS[Math.floor(Math.random()*LOGS.length)];
+  const ts=new Date().toTimeString().slice(0,8);
+  const el=document.createElement('div');el.className='lline';
+  el.innerHTML=`<span class="ts">[${ts}]</span> <span class="${m[0]}">${m[0]==='LI'?'INFO':m[0]==='WA'?'WARN':m[0]}</span> ${m[1]}`;
+  box.appendChild(el);
+  if(box.children.length>22)box.removeChild(box.firstChild);
+  box.scrollTop=box.scrollHeight;
+}
+
+// ── AI CHAT ───────────────────────────────────────────────────────────────
+const AI_RESP={
+  outage:()=>`Outage = ${S.out}% at v=${S.vel} km/h\n▸ Cause: Doppler f_d=${S.dop}Hz degrading coherence\n▸ Fix: Increase α→${Math.min(1,S.alpha+0.15).toFixed(2)}, RIS→${Math.min(256,S.ris+32)} elements\n▸ Expected: -${(S.out*0.3).toFixed(1)}% outage reduction`,
+  ris:()=>`RIS Optimization:\n▸ Current: ${S.ris} elements, 4-bit phase\n▸ Optimal: θ* = argmax WSR s.t. |Φ|=1\n▸ Gain: +${(S.ris*0.12).toFixed(1)} Mbps per 32 elements\n▸ Rec: 128 elements → +${(6.2).toFixed(1)} dB SNR`,
+  wsr:()=>`WSR = α·Rc + (1-α)·Rs\n▸ Current: ${S.wsr} Mbps at α=${S.alpha.toFixed(2)}\n▸ Rc = log₂(1+SINR) = ${Math.log2(1+undB(S.snr)).toFixed(2)} bps/Hz\n▸ Rs = ${(2.5-S.vel*0.015).toFixed(2)} Mbps\n▸ Optimal α* = ${(S.wsr/(S.wsr+1)).toFixed(2)}`,
+  beam:()=>`Beamforming Status:\n▸ ${S.ris}-element ULA, λ/2 spacing\n▸ Main lobe: 0°, width: ${(30-S.ris*0.05).toFixed(0)}°\n▸ Sidelobe: -${(13+S.ris*0.1).toFixed(1)} dB\n▸ Steering gain: +${(10*Math.log10(S.ris)).toFixed(1)} dBi\n▸ Transformer rec: ±5° pre-steer`,
+  default:()=>`Network State:\n▸ SNR:${S.snr}dB | WSR:${S.wsr}Mbps | Outage:${S.out}%\n▸ Doppler:${S.dop}Hz | v:${S.vel}km/h\n▸ RIS:${S.ris} elem | α:${S.alpha.toFixed(2)}\n▸ RL reward:${S.reward} | Converging: YES\n▸ Network operating optimally`
+};
+function getResp(q){
+  const l=q.toLowerCase();
+  if(/outage|high|degrad/.test(l)) return AI_RESP.outage();
+  if(/ris|optim|phase/.test(l)) return AI_RESP.ris();
+  if(/wsr|tradeoff|alpha/.test(l)) return AI_RESP.wsr();
+  if(/beam/.test(l)) return AI_RESP.beam();
+  return AI_RESP.default();
+}
+function doChat(){
+  if(S.chatBusy)return;
+  const inp=document.getElementById('chat-in');
+  const q=inp.value.trim();if(!q)return;
+  inp.value='';
+  const box=document.getElementById('chatbox');
+  const um=document.createElement('div');um.className='cmsg cuser';um.textContent='▸ '+q;box.appendChild(um);
+  const th=document.createElement('div');th.className='cmsg cthink';th.textContent='⚡ Analyzing network...';box.appendChild(th);
+  box.scrollTop=box.scrollHeight;S.chatBusy=true;
+  setTimeout(()=>{
+    th.remove();
+    const am=document.createElement('div');am.className='cmsg cai';am.style.whiteSpace='pre-line';
+    am.textContent='▸ '+getResp(q);box.appendChild(am);
+    box.scrollTop=box.scrollHeight;S.chatBusy=false;
+  },800+Math.random()*600);
+}
+function quickQ(q){document.getElementById('chat-in').value=q;doChat();}
+
+// ── SIM ACTIONS ──────────────────────────────────────────────────────────
+function runSim(){initSimCharts();addLog();addLog();}
+function genData(){
+  const box=document.getElementById('logbox');
+  ['[INFO] Generating 10k CSI samples...','[OK] Velocity labels computed','[INFO] RIS states encoded','[OK] Stored → PostgreSQL + S3'].forEach((l,i)=>
+    setTimeout(()=>{
+      const el=document.createElement('div');el.className='lline';el.textContent=l;
+      box.appendChild(el);box.scrollTop=box.scrollHeight;
+    },i*300)
+  );
+}
+
+// ── CLOCK ────────────────────────────────────────────────────────────────
+setInterval(()=>{document.getElementById('clock-el').textContent=new Date().toTimeString().slice(0,8);},1000);
+let fc=0,lt=performance.now();
+function fpsCount(){fc++;const n=performance.now();if(n-lt>1000){document.getElementById('fps-el').textContent=fc+' FPS';fc=0;lt=n;}}
+
+// ── MAIN LOOP ────────────────────────────────────────────────────────────
+let lastLog=0;
+function loop(){
+  fpsCount();
+  liveTick();
+  if(S.t-lastLog>60){addLog();lastLog=S.t;}
+  requestAnimationFrame(loop);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+calcAll();
+updateDisplay();
+updateRIS();
+updateBeam();
+initMainCharts();
+addLog();addLog();addLog();
+loop();
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+/* =============================================================
+   AI-Powered 6G RIS Platform — Dashboard Stylesheet
+   JCAS Dashboard v2.4.1
+   ============================================================= */
+
+/* ── Reset & Root Variables ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #020b14;
+  --bg2:     #050f1a;
+  --bg3:     #071525;
+  --panel:   #0a1c2e;
+  --panel2:  #0d2035;
+  --border:  #1a3a5c;
+  --border2: #234d78;
+  --cyan:    #00d4ff;
+  --teal:    #00ffcc;
+  --amber:   #ffb300;
+  --red:     #ff3c5f;
+  --green:   #00ff88;
+  --purple:  #b47aff;
+  --blue:    #3a8fff;
+  --text:    #c8e6f8;
+  --text2:   #7aadcf;
+  --text3:   #3a6080;
+  --font:    'Exo 2', sans-serif;
+  --mono:    'Share Tech Mono', monospace;
+  --radius:  4px;
+  --transition: 0.2s ease;
+}
+
+html, body { height: 100%; overflow-x: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── Typography ──────────────────────────────────────────────── */
+h1, h2, h3 { font-family: 'Rajdhani', sans-serif; letter-spacing: 1.5px; }
+.mono { font-family: var(--mono); }
+.cyan   { color: var(--cyan); }
+.green  { color: var(--green); }
+.amber  { color: var(--amber); }
+.red    { color: var(--red); }
+.purple { color: var(--purple); }
+.blue   { color: var(--blue); }
+
+/* ── API Panel (used by script.js) ───────────────────────────── */
+.api-overlay {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9000;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-width: 320px;
+  max-width: 420px;
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.08);
+}
+
+.api-overlay .title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.api-overlay .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: blink 2s infinite;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+.api-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+.api-label {
+  color: var(--text3);
+  width: 80px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.api-value {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.api-btn {
+  display: inline-block;
+  padding: 5px 14px;
+  background: rgba(0, 212, 255, 0.07);
+  border: 1px solid var(--cyan);
+  border-radius: 2px;
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 8px;
+}
+
+.api-btn:hover { background: rgba(0, 212, 255, 0.18); }
+
+.api-btn.green-btn {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(0, 255, 136, 0.05);
+}
+.api-btn.green-btn:hover { background: rgba(0, 255, 136, 0.14); }
+
+/* ── Status badges ───────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.badge-live { background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); color: var(--green); }
+.badge-ai   { background: rgba(0, 212, 255, 0.07); border: 1px solid rgba(0, 212, 255, 0.3); color: var(--cyan); }
+.badge-warn { background: rgba(255, 179, 0, 0.07);  border: 1px solid rgba(255, 179, 0, 0.3);  color: var(--amber); }
+
+/* ── Notification toast ──────────────────────────────────────── */
+.toast {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  z-index: 9999;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--cyan);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text);
+  max-width: 320px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  animation: slideIn 0.25s ease;
+}
+.toast.success { border-left-color: var(--green); }
+.toast.error   { border-left-color: var(--red); }
+.toast.warn    { border-left-color: var(--amber); }
+
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive helpers ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  .api-overlay { right: 10px; bottom: 10px; min-width: 260px; }
+}
+
+@media (max-width: 600px) {
+  .api-overlay { display: none; }
+}
