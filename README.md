@@ -154,14 +154,3 @@ curl -X POST http://localhost:8000/api/simulate \
 
 ---
 
-## Interview Talking Points
-
-1. **"I built the full stack"** — FastAPI routes → Pydantic validation → SQLAlchemy ORM → SQLite, all wired together
-2. **"Physics-informed ML"** — features engineered from domain equations (Doppler, array gain) for better predictions
-3. **"Two optimization strategies"** — greedy (exact, O(N·2^b)) for small arrays, hill-climbing (scalable) for large ones
-4. **"Clean separation"** — simulation, prediction, optimization are independent modules, easy to swap or extend
-5. **"Production-ready habits"** — CORS middleware, dependency injection, proper HTTP status codes, paginated list endpoints
-
----
-
-*Built for research, resume, and interview demonstration.*
